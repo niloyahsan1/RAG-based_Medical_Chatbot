@@ -1,0 +1,11 @@
+.env
+
+# Ignore data folder
+data/
+
+# Optional: ignore vector DB too
+vectordb/
+
+# Python cache
+__pycache__/
+*.pyc

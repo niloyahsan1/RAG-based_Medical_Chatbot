@@ -1,0 +1,12 @@
+# Run: pip install -r requirements.txt
+
+langchain
+langchain-community
+langchain-huggingface
+langchain-text-splitters
+faiss-cpu
+streamlit
+sentence-transformers
+python-dotenv
+groq
+pypdf
