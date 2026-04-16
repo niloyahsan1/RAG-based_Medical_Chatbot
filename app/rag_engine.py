@@ -13,10 +13,9 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def fallback_response():
     return """
-    I'm sorry, I couldn't find that information in the hospital guidelines.
+    I am sorry, I couldn't find that information in the hospital guidelines.
 
     **You can try asking questions such as:**
-
     - What are visiting hours?
     - How does the admission process work?
     - What should I do before surgery?
@@ -35,16 +34,43 @@ def ask(query):
     if any(greet in query_lower for greet in greetings):
         return "Hello! How can I assist you today?", []
     
-    # Small talk responses
-    small_talk = {
-        "what can you do": "I can help answer questions about hospital guidelines and procedures. Feel free to ask me anything related to that!",
+    # Check for non-medical queries
+    non_medical = {
+        "what can you do": """I can help answer questions about hospital guidelines and procedures. 
+                            
+        You can try asking:
+
+        - What are visiting hours?
+        - How does the admission process work?
+        - What should I do before surgery?
+        - What are patient rights?
+
+        For medical advice or emergencies, please contact a healthcare professional.""",
+
+
+        "who are you": """I am the Fictional General Hospital assistant.
+
+        I can help you with:
+        - Hospital policies
+        - Admission and discharge procedures
+        - Visiting guidelines
+        - General patient information
+
+        How can I assist you today?""",
+
+
+        "what is your purpose": """My purpose is to help patients and caregivers access hospital information easily.
+
+        You can ask about:
+        - Admission process
+        - Visiting hours
+        - Surgery preparation
+        - Patient rights""",
+
         "really": "Yes, I can help with that! Just ask me any questions you have about hospital policies, procedures, or general information.",
-        "who are you": "I'm a medical assistant chatbot designed to help answer your questions about hospital guidelines and procedures. How can I assist you today?",
-        "what is your purpose": "I'm here to help answer your questions about hospital guidelines and procedures. How can I assist you today?",
-        "are you there?": "Yes, I'm here! How can I assist you?",
-        "thanks": "You're welcome! Let me know if you need anything else.",
-        "thank you": "You're welcome! I'm here to help.",
-        "thank u": "You're welcome! I'm here to help.",
+        "are you there?": "Yes, I am here! How can I assist you?",
+        "thanks": "You are welcome! Let me know if you need anything else.",
+        "thank you": "You are welcome! I am here to help.",
         "ok": "Alright! Let me know if you have any other questions.",
         "okay": "Got it! Feel free to ask anything else.",
         "got it": "Great! Let me know if you need further assistance.",
@@ -52,11 +78,15 @@ def ask(query):
         "bye": "Goodbye! Take care and stay safe.",
         "goodbye": "Goodbye! Feel free to return if you need help.",
         "hmm": "If you have any questions about hospital guidelines or procedures, feel free to ask!",
+        "no": "I understand. Is there anything else I can help you with?",
+        "nah": "I understand. Is there anything else I can help you with?",
+        "not really": "I understand. If you have any questions about hospital guidelines or procedures, feel free to ask!",
+        "maybe later": "No problem! I am here whenever you need assistance with hospital guidelines or procedures.",
         }
     
-    for key in small_talk:
+    for key in non_medical:
         if key in query_lower:
-            return small_talk[key], []
+            return non_medical[key], []
 
 
     # Safety check for medical advice

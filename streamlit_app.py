@@ -4,7 +4,7 @@ from datetime import datetime
 from collections import defaultdict
 
 
-st.set_page_config(page_title="Medical Chatbot", layout="wide")
+st.set_page_config(page_title="FGH Assistant", layout="wide")
 
 # Header
 col1, col2 = st.columns([8, 2])
@@ -92,7 +92,6 @@ st.markdown("""
             .chat-user { justify-content: flex-end; }
             .chat-bot { justify-content: flex-start; }
 
-            /* USER bubble */
             .bubble-user {
                 background-color: #2F2F2F;
                 color: white;
@@ -107,7 +106,6 @@ st.markdown("""
                 box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             }
 
-            /* BOT bubble */
             .bubble-bot {
                 background-color: #E8E8E8;
                 color: black;
