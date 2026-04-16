@@ -6,13 +6,37 @@ from collections import defaultdict
 
 st.set_page_config(page_title="Medical Chatbot", layout="wide")
 
+# Header
+col1, col2 = st.columns([8, 2])
 
-st.title("🤖 Medical Info Assistant")
+# Title
+with col1:
+    st.title("🤖 Medical Info Assistant")
+
+# Reset button
+with col2:
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Reset Chat"):
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": "Hello! I am your hospital assistant. How can I help you today?",
+                "time": datetime.now().strftime("%I:%M %p")
+            }
+        ]
+
+        st.rerun()
 
 
 # Initialize chat history
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": "Hello! I am your hospital assistant. How can I help you today?",
+            "time": datetime.now().strftime("%I:%M %p")
+        }
+    ]
 
 
 # Handle typing state
@@ -68,20 +92,34 @@ st.markdown("""
             .chat-user { justify-content: flex-end; }
             .chat-bot { justify-content: flex-start; }
 
+            /* USER bubble */
             .bubble-user {
-                background-color: #3A3A3A;
+                background-color: #2F2F2F;
                 color: white;
                 padding: 10px;
                 border-radius: 12px;
                 max-width: 70%;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
             }
 
+            .bubble-user:hover {
+                transform: scale(1.02);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+
+            /* BOT bubble */
             .bubble-bot {
-                background-color: #E0E0E0;
+                background-color: #E8E8E8;
                 color: black;
                 padding: 10px;
                 border-radius: 12px;
                 max-width: 70%;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .bubble-bot:hover {
+                transform: scale(1.02);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             }
 
             .timestamp {

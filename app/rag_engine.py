@@ -37,26 +37,24 @@ def ask(query):
     
     # Small talk responses
     small_talk = {
+        "what can you do": "I can help answer questions about hospital guidelines and procedures. Feel free to ask me anything related to that!",
+        "really": "Yes, I can help with that! Just ask me any questions you have about hospital policies, procedures, or general information.",
+        "who are you": "I'm a medical assistant chatbot designed to help answer your questions about hospital guidelines and procedures. How can I assist you today?",
+        "what is your purpose": "I'm here to help answer your questions about hospital guidelines and procedures. How can I assist you today?",
+        "are you there?": "Yes, I'm here! How can I assist you?",
         "thanks": "You're welcome! Let me know if you need anything else.",
         "thank you": "You're welcome! I'm here to help.",
         "thank u": "You're welcome! I'm here to help.",
         "ok": "Alright! Let me know if you have any other questions.",
-        "okk": "Alright! Let me know if you have any other questions.",
         "okay": "Got it! Feel free to ask anything else.",
-        "okayy": "Got it! Feel free to ask anything else.",
         "got it": "Great! Let me know if you need further assistance.",
         "cool": "Let me know if you have more questions.",
         "bye": "Goodbye! Take care and stay safe.",
-        "byee": "Goodbye! Take care and stay safe.",
         "goodbye": "Goodbye! Feel free to return if you need help.",
-        "goodbyee": "Goodbye! Feel free to return if you need help.",
         "oh": "Thanks for your understanding! Let me know if you have any other questions.",
-        "ohh": "Thanks for your understanding! Let me know if you have any other questions.",
-        "ohhh": "Thanks for your understanding! Let me know if you have any other questions.",
         "o": "Thanks for your understanding! Let me know if you have any other questions.",
-        "oo": "Thanks for your understanding! Let me know if you have any other questions.",
-        "ooo": "Thanks for your understanding! Let me know if you have any other questions.",
-    }
+        "hmm": "If you have any questions about hospital guidelines or procedures, feel free to ask!",
+        }
     
     for key in small_talk:
         if key in query_lower:
