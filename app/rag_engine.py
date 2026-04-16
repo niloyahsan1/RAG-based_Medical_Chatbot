@@ -51,8 +51,6 @@ def ask(query):
         "cool": "Let me know if you have more questions.",
         "bye": "Goodbye! Take care and stay safe.",
         "goodbye": "Goodbye! Feel free to return if you need help.",
-        "oh": "Thanks for your understanding! Let me know if you have any other questions.",
-        "o": "Thanks for your understanding! Let me know if you have any other questions.",
         "hmm": "If you have any questions about hospital guidelines or procedures, feel free to ask!",
         }
     
