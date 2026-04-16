@@ -2,18 +2,40 @@ import streamlit as st
 from app.rag_engine import ask
 from datetime import datetime
 from collections import defaultdict
-import time
 
 st.set_page_config(page_title="Medical Chatbot", layout="wide")
-
 
 st.title("🏥 Medical Info Assistant")
 
 # -------------------------------
-# CHAT HISTORY
+# INIT CHAT HISTORY
 # -------------------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# -------------------------------
+# HANDLE TYPING STATE (IMPORTANT)
+# -------------------------------
+if st.session_state.messages and st.session_state.messages[-1].get("typing"):
+
+    last_user_msg = None
+
+    for msg in reversed(st.session_state.messages):
+        if msg["role"] == "user":
+            last_user_msg = msg["content"]
+            break
+
+    if last_user_msg:
+        answer, docs = ask(last_user_msg)
+
+        st.session_state.messages[-1] = {
+            "role": "assistant",
+            "content": answer,
+            "time": datetime.now().strftime("%I:%M %p"),
+            "docs": docs
+        }
+
+        st.rerun()
 
 # -------------------------------
 # INPUT BOX
@@ -21,127 +43,112 @@ if "messages" not in st.session_state:
 query = st.chat_input("Ask your question...")
 
 # -------------------------------
-# HANDLE NEW MESSAGE FIRST
+# HANDLE NEW MESSAGE
 # -------------------------------
 if query:
-    from datetime import datetime
-
-    # Save user message
     st.session_state.messages.append({
         "role": "user",
         "content": query,
         "time": datetime.now().strftime("%I:%M %p")
     })
 
-    # Thinking animation
-    thinking = st.empty()
-    for i in range(3):
-        thinking.markdown("🤖 Thinking" + "." * (i % 3 + 1))
-        time.sleep(0.4)
-
-    # Get response
-    answer, docs = ask(query)
-    thinking.empty()
-
-    # Save assistant message
+    # Add typing placeholder
     st.session_state.messages.append({
         "role": "assistant",
-        "content": answer,
-        "time": datetime.now().strftime("%I:%M %p"),
-        "docs": docs   # 👈 store docs with message
+        "content": "🤖 Typing...",
+        "time": "",
+        "typing": True
     })
 
+    st.rerun()
+
 # -------------------------------
-# DISPLAY ALL MESSAGES (AFTER UPDATE)
+# CHAT UI STYLES
+# -------------------------------
+st.markdown("""
+<style>
+.chat-row { display: flex; margin: 10px 0; }
+.chat-user { justify-content: flex-end; }
+.chat-bot { justify-content: flex-start; }
+
+.bubble-user {
+    background-color: #3A3A3A;
+    color: white;
+    padding: 10px;
+    border-radius: 12px;
+    max-width: 70%;
+}
+
+.bubble-bot {
+    background-color: #E0E0E0;
+    color: black;
+    padding: 10px;
+    border-radius: 12px;
+    max-width: 70%;
+}
+
+.timestamp {
+    font-size: 0.75em;
+    opacity: 0.6;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------------
+# DISPLAY CHAT
 # -------------------------------
 for msg in st.session_state.messages:
 
     if msg["role"] == "user":
-        st.markdown(
-            f"""
-            <div class="chat-row chat-user">
-                <div class="bubble-user">
-                    {msg['content']}<br>
-                    <span class="timestamp">{msg.get('time','')}</span>
-                </div>
+        st.markdown(f"""
+        <div class="chat-row chat-user">
+            <div class="bubble-user">
+                {msg['content']}<br>
+                <span class="timestamp">{msg.get('time','')}</span>
             </div>
-            """,
-            unsafe_allow_html=True
-        )
+        </div>
+        """, unsafe_allow_html=True)
 
     else:
-        st.markdown(
-            f"""
-            <div class="chat-row chat-bot">
-                <div class="bubble-bot">
-                    {msg['content']}<br>
-                    <span class="timestamp">{msg.get('time','')}</span>
-                </div>
+        st.markdown(f"""
+        <div class="chat-row chat-bot">
+            <div class="bubble-bot">
+                {msg['content']}<br>
+                <span class="timestamp">{msg.get('time','')}</span>
             </div>
-            """,
-            unsafe_allow_html=True
-        )
+        </div>
+        """, unsafe_allow_html=True)
 
-# -------------------------------
-# NEW MESSAGE
-# -------------------------------
-if query:
-    st.session_state.messages.append({
-        "role": "user",
-        "content": query,
-        "time": datetime.now().strftime("%I:%M %p")
-    })
+        # -------------------------------
+        # SOURCES PER MESSAGE
+        # -------------------------------
+        docs = msg.get("docs", [])
 
-    # -------------------------------
-    # THINKING ANIMATION
-    # -------------------------------
-    thinking_placeholder = st.empty()
-    for i in range(3):
-        thinking_placeholder.markdown("🤖 Thinking" + "." * (i % 3 + 1))
-        time.sleep(0.5)
+        if docs:
+            grouped = defaultdict(list)
 
-    # -------------------------------
-    # GET RESPONSE
-    # -------------------------------
-    answer, docs = ask(query)
+            for d in docs:
+                source = d.metadata.get("source", "")
+                page = d.metadata.get("page", "")
+                grouped[source].append(page)
 
-    thinking_placeholder.empty()
+            with st.expander("📚 Sources"):
+                for src, pages in grouped.items():
+                    pages = sorted(set(pages))
+                    st.write(f"{src}")
+                    st.write(f"Pages: {pages}")
 
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": answer,
-        "time": datetime.now().strftime("%I:%M %p")
-    })
+        # -------------------------------
+        # CONFIDENCE SCORE
+        # -------------------------------
+        if docs:
+            confidence = round(min(len(docs)/5, 1.0), 2)
+            st.write(f"🔍 Confidence: {confidence}")
 
-    st.markdown(f"<div style='text-align:left'>{answer}</div>", unsafe_allow_html=True)
-
-    # -------------------------------
-    # SHOW SOURCES
-    # -------------------------------
-    grouped = defaultdict(list)
-
-    for d in docs:
-        source = d.metadata.get("source", "")
-        page = d.metadata.get("page", "")
-        grouped[source].append(page)
-
-    with st.expander("📚 Sources"):
-        for src, pages in grouped.items():
-            pages = sorted(set(pages))
-            st.write(f"{src}")
-            st.write(f"Pages: {pages}")
-
-    # -------------------------------
-    # OPTIONAL: CONFIDENCE SCORE
-    # -------------------------------
-    # 🔴 COMMENT THIS IF NOT NEEDED
-    confidence = round(min(len(docs)/5, 1.0), 2)
-    st.write(f"🔍 Confidence: {confidence}")
-
-    # -------------------------------
-    # OPTIONAL: SNIPPETS (FOR TESTING)
-    # -------------------------------
-    # 🔴 COMMENT THIS IF NOT NEEDED
-    st.write("📄 Retrieved Snippets:")
-    for d in docs[:2]:
-        st.write(d.page_content[:200] + "...")
+        # -------------------------------
+        # SNIPPETS (FOR TESTING)
+        # -------------------------------
+        # if docs:
+        #     st.write("📄 Retrieved Snippets:")
+        #     for d in docs[:2]:
+        #         st.write(d.page_content[:200] + "...")
