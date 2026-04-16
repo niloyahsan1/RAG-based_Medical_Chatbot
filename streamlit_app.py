@@ -3,19 +3,19 @@ from app.rag_engine import ask
 from datetime import datetime
 from collections import defaultdict
 
+
 st.set_page_config(page_title="Medical Chatbot", layout="wide")
 
-st.title("🏥 Medical Info Assistant")
 
-# -------------------------------
-# INIT CHAT HISTORY
-# -------------------------------
+st.title("🤖 Medical Info Assistant")
+
+
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# -------------------------------
-# HANDLE TYPING STATE (IMPORTANT)
-# -------------------------------
+
+# Handle typing state
 if st.session_state.messages and st.session_state.messages[-1].get("typing"):
 
     last_user_msg = None
@@ -37,14 +37,12 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
 
         st.rerun()
 
-# -------------------------------
-# INPUT BOX
-# -------------------------------
+
+# Chat input
 query = st.chat_input("Ask your question...")
 
-# -------------------------------
-# HANDLE NEW MESSAGE
-# -------------------------------
+
+# Handle new message
 if query:
     st.session_state.messages.append({
         "role": "user",
@@ -62,41 +60,39 @@ if query:
 
     st.rerun()
 
-# -------------------------------
-# CHAT UI STYLES
-# -------------------------------
+
+# Custom CSS for chat bubbles
 st.markdown("""
-<style>
-.chat-row { display: flex; margin: 10px 0; }
-.chat-user { justify-content: flex-end; }
-.chat-bot { justify-content: flex-start; }
+            <style>
+            .chat-row { display: flex; margin: 10px 0; }
+            .chat-user { justify-content: flex-end; }
+            .chat-bot { justify-content: flex-start; }
 
-.bubble-user {
-    background-color: #3A3A3A;
-    color: white;
-    padding: 10px;
-    border-radius: 12px;
-    max-width: 70%;
-}
+            .bubble-user {
+                background-color: #3A3A3A;
+                color: white;
+                padding: 10px;
+                border-radius: 12px;
+                max-width: 70%;
+            }
 
-.bubble-bot {
-    background-color: #E0E0E0;
-    color: black;
-    padding: 10px;
-    border-radius: 12px;
-    max-width: 70%;
-}
+            .bubble-bot {
+                background-color: #E0E0E0;
+                color: black;
+                padding: 10px;
+                border-radius: 12px;
+                max-width: 70%;
+            }
 
-.timestamp {
-    font-size: 0.75em;
-    opacity: 0.6;
-}
-</style>
-""", unsafe_allow_html=True)
+            .timestamp {
+                font-size: 0.75em;
+                opacity: 0.6;
+            }
+            </style>
+            """, unsafe_allow_html=True)
 
-# -------------------------------
-# DISPLAY CHAT
-# -------------------------------
+
+# Display chat messages
 for msg in st.session_state.messages:
 
     if msg["role"] == "user":
@@ -119,9 +115,8 @@ for msg in st.session_state.messages:
         </div>
         """, unsafe_allow_html=True)
 
-        # -------------------------------
-        # SOURCES PER MESSAGE
-        # -------------------------------
+
+        # sources
         docs = msg.get("docs", [])
 
         if docs:
@@ -132,24 +127,15 @@ for msg in st.session_state.messages:
                 page = d.metadata.get("page", 0) + 1
                 grouped[source].append(page)
 
-            with st.expander("📚 Sources"):
+            with st.expander("📖 Sources"):
                 for src, pages in grouped.items():
                     pages = sorted(set(pages))
                     st.write(f"{src}")
                     st.write(f"Pages: {pages}")
 
-        # -------------------------------
-        # CONFIDENCE SCORE
-        # -------------------------------
+
+        # confidence score
         if docs:
             unique_docs = len(set([d.page_content for d in docs]))
             confidence = round(min(unique_docs / 3, 1.0), 2)
-            st.write(f"🔍 Confidence: {confidence}")
-
-        # -------------------------------
-        # SNIPPETS (FOR TESTING)
-        # -------------------------------
-        # if docs:
-        #     st.write("📄 Retrieved Snippets:")
-        #     for d in docs[:2]:
-        #         st.write(d.page_content[:200] + "...")
+            st.write(f"Confidence: {confidence}")

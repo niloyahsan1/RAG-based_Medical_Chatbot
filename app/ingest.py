@@ -4,33 +4,38 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 import os
 
+
 DATA_PATH = "data/documents"
 DB_PATH = "vectordb"
 
+
+# Ingest pipeline to load, chunk, and build vector database
 def load_docs():
     docs = []
+
     for file in os.listdir(DATA_PATH):
         if file.endswith(".pdf"):
             loader = PyPDFLoader(os.path.join(DATA_PATH, file))
             docs.extend(loader.load())
+
     return docs
 
+
+# Chunk documents into smaller pieces for embedding
 def chunk_docs(docs):
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=100
-    )
+    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
+
     return splitter.split_documents(docs)
 
+
+# Build vector database from chunks
 def build_db(chunks):
     import os
     os.makedirs(DB_PATH, exist_ok=True)
 
     print("Building embeddings...")
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-mpnet-base-v2"
-    )
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
     print("Creating FAISS index...")
     db = FAISS.from_documents(chunks, embeddings)
@@ -40,14 +45,9 @@ def build_db(chunks):
 
     print("Database saved successfully!")
 
-docs = load_docs()
-print("Loaded docs:", len(docs))
-
-chunks = chunk_docs(docs)
-print("Chunks:", len(chunks))
 
 if __name__ == "__main__":
     docs = load_docs()
     chunks = chunk_docs(docs)
     build_db(chunks)
-    print("✅ Vector DB built")
+    print("Vector DB built")
