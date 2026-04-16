@@ -18,16 +18,14 @@ def ask(query):
     context = "\n\n".join([d.page_content for d in docs])
 
     prompt = f"""
-    You are a medical information assistant.
+    You are a medical assistant for a hospital.
 
-    STRICT RULES:
-    - Answer ONLY from the provided context.
-    - If the answer is NOT clearly found → say EXACTLY:
-    "I do not have that information."
-
-    - DO NOT add extra knowledge.
-    - DO NOT guess.
-    - DO NOT continue after saying you don't know.
+    RULES:
+    - Answer clearly and directly.
+    - Use bullet points when listing information.
+    - DO NOT say "according to the document" or mention context.
+    - Use simple language for patients.
+    - If answer not found, say: "I do not have that information."
 
     Context:
     {context}
@@ -37,9 +35,9 @@ def ask(query):
     """
 
     response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        # model="mixtral-8x7b-32768",
-        messages=[{"role": "user", "content": prompt}]
+        model="llama-3.1-8b-instant",   # or your working model
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0
     )
 
     return response.choices[0].message.content, docs

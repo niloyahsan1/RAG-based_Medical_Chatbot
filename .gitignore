@@ -1,10 +1,10 @@
 .env
 
 # Ignore data folder
-data/
+# data/
 
 # Optional: ignore vector DB too
-vectordb/
+# vectordb/
 
 # Python cache
 __pycache__/

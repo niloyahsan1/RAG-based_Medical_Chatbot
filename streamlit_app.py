@@ -128,8 +128,8 @@ for msg in st.session_state.messages:
             grouped = defaultdict(list)
 
             for d in docs:
-                source = d.metadata.get("source", "")
-                page = d.metadata.get("page", "")
+                source = d.metadata.get("source", "")                
+                page = d.metadata.get("page", 0) + 1
                 grouped[source].append(page)
 
             with st.expander("📚 Sources"):
@@ -142,7 +142,8 @@ for msg in st.session_state.messages:
         # CONFIDENCE SCORE
         # -------------------------------
         if docs:
-            confidence = round(min(len(docs)/5, 1.0), 2)
+            unique_docs = len(set([d.page_content for d in docs]))
+            confidence = round(min(unique_docs / 3, 1.0), 2)
             st.write(f"🔍 Confidence: {confidence}")
 
         # -------------------------------
