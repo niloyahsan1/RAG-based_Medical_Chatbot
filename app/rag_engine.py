@@ -48,7 +48,7 @@ def ask(query):
         For medical advice or emergencies, please contact a healthcare professional.""",
 
 
-        "who are you": """I am the Fictional General Hospital assistant.
+        "who are you": """I am the Fictional Hospital assistant.
 
         I can help you with:
         - Hospital policies

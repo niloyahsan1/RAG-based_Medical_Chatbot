@@ -11,7 +11,7 @@ col1, col2 = st.columns([8, 2])
 
 # Title
 with col1:
-    st.title("🤖 Fictional General Hospital Assistant")
+    st.title("🤖 Fictional Hospital Assistant")
 
 # Reset button
 with col2:
