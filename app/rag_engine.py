@@ -99,7 +99,7 @@ def ask(query, history, appointments):
 
 
     # Retrieve docs relevant to the query (RAG part)
-    retriever = get_retriever(k=2)
+    retriever = get_retriever(k=3)
     docs = retriever.invoke(query)
 
 
