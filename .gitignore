@@ -1,9 +1,6 @@
 .env
-
-# Ignore documents folder
+template.sh
 # documents/
-
-# Optional: ignore vector DB too
 # vectordb/
 
 # Python cache
