@@ -95,7 +95,7 @@ def ask(query):
 
 
     # Retrieve docs relevant to the query
-    retriever = get_retriever(k=5)
+    retriever = get_retriever(k=2)
     docs = retriever.invoke(query)
 
 
@@ -116,6 +116,7 @@ def ask(query):
     RULES:
     - Answer clearly and directly.
     - Use bullet points when listing information.
+    - DO NOT guess or assume anything.
     - DO NOT say "according to the document" or mention context.
     - Use simple language for patients.
     - If answer not found, say: "I do not have that information."
