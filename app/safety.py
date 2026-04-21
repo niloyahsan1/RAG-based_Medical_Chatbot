@@ -1,10 +1,12 @@
-def is_medical_advice(query):
-    risky_keywords = [
-        "treatment", "diagnosis", "medicine",
-        "what should I take", "prescription"
-    ]
 
-    return any(word in query.lower() for word in risky_keywords)
+def is_medical_advice(query):
+    risky_keywords = ["treatment", "diagnosis", "medicine", "what should I take", "prescription"]
+    
+    for word in risky_keywords:
+        if word in query.lower():
+            return True
+        
+    return False
 
 
 def safe_response():

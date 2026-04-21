@@ -1,5 +1,4 @@
 import os
-from turtle import st
 from groq import Groq
 from .retriever import get_retriever
 from .safety import is_medical_advice, safe_response
@@ -27,15 +26,16 @@ def fallback_response():
 
 
 # Main function to handle user queries
-def ask(query):
+def ask(query, history, appointments):
     query_lower = query.lower()
 
     # Simple greeting check
     greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
+    for greet in greetings:
+        if greet in query_lower:
+            return "Hello! How can I assist you today?", []
 
-    if any(greet in query_lower for greet in greetings):
-        return "Hello! How can I assist you today?", []
-    
+
     # Check for non-medical queries
     non_medical = {
         "what can you do": """I can help answer questions about hospital guidelines and procedures. 
@@ -98,7 +98,7 @@ def ask(query):
         return safe_response(), []
 
 
-    # Retrieve docs relevant to the query
+    # Retrieve docs relevant to the query (RAG part)
     retriever = get_retriever(k=2)
     docs = retriever.invoke(query)
 
@@ -113,7 +113,7 @@ def ask(query):
     context = "\n\n".join(unique_texts)
 
 
-    history = st.session_state.chat_history[-4:]  # last few messages
+    # Add conversation history
     history_text = ""
     for h in history:
         history_text += f"{h['role']}: {h['content']}\n"
