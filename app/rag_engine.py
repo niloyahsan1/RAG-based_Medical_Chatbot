@@ -1,4 +1,5 @@
 import os
+from turtle import st
 from groq import Groq
 from .retriever import get_retriever
 from .safety import is_medical_advice, safe_response
@@ -25,6 +26,7 @@ def fallback_response():
     """
 
 
+# Main function to handle user queries
 def ask(query):
     query_lower = query.lower()
 
@@ -84,6 +86,8 @@ def ask(query):
         "maybe later": "No problem! I am here whenever you need assistance with hospital guidelines or procedures.",
         }
     
+    
+    # Check if query matches any non-medical responses
     for key in non_medical:
         if key in query_lower:
             return non_medical[key], []
@@ -109,22 +113,40 @@ def ask(query):
     context = "\n\n".join(unique_texts)
 
 
+    history = st.session_state.chat_history[-4:]  # last few messages
+    history_text = ""
+    for h in history:
+        history_text += f"{h['role']}: {h['content']}\n"
+
+
     # Prompt
     prompt = f"""
     You are a medical assistant for a hospital.
 
+    Use the conversation history if relevant.
+    If the question refers to previous messages, use that context.
+
+    Do NOT guess.
+    Answer only based on:
+    1. Conversation history
+    2. Retrieved hospital documents
+    
+    If unclear, ask for clarification.
+
     RULES:
     - Answer clearly and directly.
     - Use bullet points when listing information.
-    - DO NOT guess or assume anything.
     - DO NOT say "according to the document" or mention context.
     - Use simple language for patients.
     - If answer not found, say: "I do not have that information."
 
+    Conversation History:
+    {history_text}
+
     Context:
     {context}
 
-    Question:
+    User Question:
     {query}
     """
 

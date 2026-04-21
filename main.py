@@ -4,7 +4,11 @@ from datetime import datetime
 from collections import defaultdict
 
 
-st.set_page_config(page_title="FGH Assistant", layout="wide")
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+
+st.set_page_config(page_title="FH Assistant", layout="wide")
 
 # Header
 col1, col2 = st.columns([8, 2])
@@ -38,7 +42,6 @@ if "messages" not in st.session_state:
         }
     ]
 
-
 # Handle typing state
 if st.session_state.messages and st.session_state.messages[-1].get("typing"):
 
@@ -58,6 +61,11 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
             "time": datetime.now().strftime("%I:%M %p"),
             "docs": docs
         }
+
+        st.session_state.chat_history.append({
+            "role": "assistant",
+            "content": answer
+        })
 
         st.rerun()
 
@@ -80,6 +88,11 @@ if query:
         "content": "🤖 Typing...",
         "time": "",
         "typing": True
+    })
+
+    st.session_state.chat_history.append({
+    "role": "user",
+    "content": query
     })
 
     st.rerun()
