@@ -5,7 +5,7 @@ from langchain_community.vectorstores import FAISS
 import os
 
 
-DATA_PATH = "data/documents"
+DATA_PATH = "documents"
 DB_PATH = "vectordb"
 
 
