@@ -5,6 +5,16 @@ from collections import defaultdict
 from app.retriever import get_retriever
 from datetime import datetime
 from app.rag_engine import is_valid_reason
+from app.database import init_db
+from app.database import add_appointment
+from app.database import get_appointments
+from app.database import delete_appointment
+from app.database import is_doctor_available
+
+
+
+# Initialize database
+init_db()
 
 
 # Page config
@@ -20,9 +30,6 @@ if "delete_mode" not in st.session_state:
 
 if "doctor_select_mode" not in st.session_state:
     st.session_state.doctor_select_mode = False
-
-if "appointments" not in st.session_state:
-    st.session_state.appointments = []
 
 if "selected_doctor" not in st.session_state:
     st.session_state.selected_doctor = None
@@ -111,25 +118,36 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
                         st.session_state.booking["data"]["date"] = date_input
                         data = st.session_state.booking["data"]
 
-                        answer = f"""Appointment booked!
+                        if not is_doctor_available(data.get("doctor"), data.get("date")):
+                            answer = "This doctor is not available on that date. Please choose another date or doctor."
+                            docs = []
 
-                        - Name: {data['name']}
-                        - Doctor: {data.get('doctor')}
-                        - Date: {data['date']}
-                        - Reason: {data.get('reason')}
+                        else:
+                            # If available
+                            add_appointment(
+                                data.get("name"),
+                                data.get("doctor"),
+                                data.get("date"),
+                                data.get("reason")
+                            )
 
-                        """
+                            answer = f"""Appointment booked!
 
-                        st.session_state.appointments.append(data)
+                            - Name: {data.get('name')}
+                            - Doctor: {data.get('doctor')}
+                            - Date: {data.get('date')}
+                            - Reason: {data.get('reason')}
 
-                        # Reset booking
-                        st.session_state.booking = {
-                            "active": False,
-                            "step": None,
-                            "data": {}
-                        }
+                            """
 
-                        docs = []
+                            # Reset booking
+                            st.session_state.booking = {
+                                "active": False,
+                                "step": None,
+                                "data": {}
+                            }
+
+                            docs = []
 
                 except:
                     answer = "Please enter a valid date (e.g., '4 May')."
@@ -197,23 +215,18 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
         # Delete appointment flow
         elif st.session_state.delete_mode:
 
-            if not st.session_state.appointments:
+            appointments = get_appointments()
+
+            if not appointments:
                 answer = "You have no appointments to delete."
 
             elif query.isdigit():
                 index = int(query) - 1
 
-                if 0 <= index < len(st.session_state.appointments):
-                    removed = st.session_state.appointments.pop(index)
-
-                    answer = f"""Appointment deleted:
-
-                    - Name: {removed['name']}
-                    - Doctor: {removed.get('doctor', 'Not assigned')}
-                    - Date: {removed.get('date', 'Not set')}
-                    - Reason: {removed['reason']}
-                    
-                    """
+                if 0 <= index < len(appointments):
+                    appt_id = appointments[index][0]
+                    delete_appointment(appt_id)
+                    answer = "Appointment deleted successfully."
 
                 else:
                     answer = "Invalid appointment number."
@@ -262,57 +275,30 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
         # Show appointments
         elif "show" in query and "appointment" in query:
 
-            if not st.session_state.appointments:
+            appointments = get_appointments()
+
+            if not appointments:
                 answer = "You have no appointments."
 
             else:
                 answer = "Your Appointments are below:\n\n"
 
-                for i, a in enumerate(st.session_state.appointments, 1):
-                    answer += f"""{i}.
-                - Name: {a.get('name')}
-                - Doctor: {a.get('doctor', 'Not assigned')}
-                - Date: {a.get('date', 'Not set')}
-                - Reason: {a.get('reason')}
-                \n"""
+                for a in appointments:
+                    answer += f"""{a[0]}.
+                    - Name: {a[1]}
+                    - Doctor: {a[2]}
+                    - Date: {a[3]}
+                    - Reason: {a[4]}
+                    
+                    """
 
             docs = []
 
 
         # Delete appointments
         elif any(w in query for w in ["delete", "cancel", "remove"]):
-
-            if not st.session_state.appointments:
-                answer = "You have no appointments to delete."
-            
-            else:    
-                # Extract appointment number
-                words = query.split()
-                index = None
-            
-                for w in words:
-                    if w.isdigit():
-                        index = int(w) - 1
-                        break
-
-                if index is not None:
-                    if 0 <= index < len(st.session_state.appointments):
-                        removed = st.session_state.appointments.pop(index)
-
-                        answer = f"""Appointment deleted:
-
-                        - Name: {removed['name']}
-                        - Time: {removed['time']}
-                        - Reason: {removed['reason']}
-                        
-                        """
-
-                    else:
-                        answer = "Invalid appointment number."
-
-                else:
-                    st.session_state.delete_mode = True
-                    answer = "Which appointment number do you want to delete?"
+            st.session_state.delete_mode = True
+            answer = "Which appointment number do you want to delete?"
 
             docs = []
 
@@ -328,20 +314,19 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
 
             for d in docs:
                 lines = d.page_content.split("\n")
-                for line in lines:
+
+                for i, line in enumerate(lines):
                     line = line.strip()
 
-                    for i, line in enumerate(lines):
-                        line = line.strip()
+                    if line.startswith("Dr."):
+                        doctors.append(line)
 
-                        if line.startswith("Dr."):
-                            doctors.append(line)
-
-                        # fallback: if "Treats" matched, grab previous line (doctor)
-                        if "treats" in line.lower() and i > 0:
-                            prev_line = lines[i-1].strip()
-                            if prev_line.startswith("Dr."):
-                                doctors.append(prev_line)
+                    # fallback: if "Treats" matched, grab previous line (doctor)
+                    if "treats" in line.lower() and i > 0:
+                        prev_line = lines[i-1].strip()
+                        
+                        if prev_line.startswith("Dr."):
+                            doctors.append(prev_line)
 
             doctors = list(dict.fromkeys(doctors))
 
@@ -388,7 +373,7 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
         elif "book" in query and any(word in query for word in ["doctor", "dr"]):
 
             history = st.session_state.chat_history[-4:]
-            answer, docs = ask(last_user_msg, history, st.session_state.appointments)
+            answer, docs = ask(last_user_msg, history, [])
 
             # Extract doctor names from docs
             doctors = []
@@ -435,7 +420,7 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
         # Normal RAG fallback flow
         else:
             history = st.session_state.chat_history[-4:]
-            answer, docs = ask(last_user_msg, history, st.session_state.appointments)
+            answer, docs = ask(last_user_msg, history, [])
 
         st.session_state.messages[-1] = {
             "role": "assistant",
