@@ -87,9 +87,17 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
     if last_user_msg:
         query = last_user_msg.lower()
 
+        if "cancel" in query:
+            st.session_state.booking = {"active": False, "step": None, "data": {}}
+            st.session_state.doctor_select_mode = False
+            st.session_state.delete_mode = False
+
+            answer = "Booking cancelled."
+            docs = []
+
 
         # Appointment booking flow
-        if st.session_state.booking["active"]:
+        elif st.session_state.booking["active"]:
 
             step = st.session_state.booking["step"]
 
@@ -100,58 +108,64 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
                 docs = []
             
             elif step == "date":
-                date_input = last_user_msg.strip()
+                if query in ["ok", "yes", "no"]:
+                        answer = "Please enter a valid date (e.g., '4 May') or type 'cancel'."
 
-                try:
-                    parsed_date = datetime.strptime(date_input, "%d %B")
-
-                    # Add current year
-                    today = datetime.now()
-                    parsed_date = parsed_date.replace(year=today.year)
-
-                    # Check past date
-                    if parsed_date.date() < today.date():
-                        answer = "You cannot select a past date. Please choose a future date."
                         docs = []
-                    
-                    else:
-                        st.session_state.booking["data"]["date"] = date_input
-                        data = st.session_state.booking["data"]
 
-                        if not is_doctor_available(data.get("doctor"), data.get("date")):
-                            answer = "This doctor is not available on that date. Please choose another date or doctor."
+                else:
+                    date_input = last_user_msg.strip()
+
+                    try:
+                        parsed_date = datetime.strptime(date_input, "%d %B")
+
+                        # Add current year
+                        today = datetime.now()
+                        parsed_date = parsed_date.replace(year=today.year)
+
+                        # Check past date
+                        if parsed_date.date() < today.date():
+                            answer = "You cannot select a past date. Please choose a future date."
                             docs = []
-
+                        
                         else:
-                            # If available
-                            add_appointment(
-                                data.get("name"),
-                                data.get("doctor"),
-                                data.get("date"),
-                                data.get("reason")
-                            )
+                            st.session_state.booking["data"]["date"] = date_input
+                            data = st.session_state.booking["data"]
 
-                            answer = f"""Appointment booked!
+                            if not is_doctor_available(data.get("doctor"), data.get("date")):
+                                answer = "This doctor is not available on that date.\nPlease enter another date or type 'cancel'."
+                                docs = []
 
-                            - Name: {data.get('name')}
-                            - Doctor: {data.get('doctor')}
-                            - Date: {data.get('date')}
-                            - Reason: {data.get('reason')}
+                            else:
+                                # If available
+                                add_appointment(
+                                    data.get("name"),
+                                    data.get("doctor"),
+                                    data.get("date"),
+                                    data.get("reason")
+                                )
 
-                            """
+                                answer = f"""Appointment booked!
 
-                            # Reset booking
-                            st.session_state.booking = {
-                                "active": False,
-                                "step": None,
-                                "data": {}
-                            }
+                                - Name: {data.get('name')}
+                                - Doctor: {data.get('doctor')}
+                                - Date: {data.get('date')}
+                                - Reason: {data.get('reason')}
 
-                            docs = []
+                                """
 
-                except:
-                    answer = "Please enter a valid date (e.g., '4 May')."
-                    docs = []
+                                # Reset booking
+                                st.session_state.booking = {
+                                    "active": False,
+                                    "step": None,
+                                    "data": {}
+                                }
+
+                                docs = []
+
+                    except:
+                        answer = "Please enter a valid date (e.g., '4 May')."
+                        docs = []
 
 
             elif step == "reason":
@@ -163,7 +177,14 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
                     st.session_state.selected_reason = last_user_msg
                     st.session_state.booking["data"]["reason"] = last_user_msg
 
-                    enhanced_query = f"{last_user_msg} doctor treatment hospital"
+                    enhanced_query = f"""
+                    Patient symptoms: {last_user_msg}
+
+                    Find:
+                    - relevant medical department
+                    - doctors who treat this condition
+
+                    """
 
                     retriever = get_retriever(k=8)
                     docs = retriever.invoke(enhanced_query)
@@ -367,6 +388,29 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
                 answer = "I couldn't find exact matches. You can consult a General Medicine doctor."
 
             docs = []
+
+        # Direrct doctor name booking
+        elif "book" in query and "dr." in query:
+
+            doctor_name = None
+
+            for word in last_user_msg.split():
+                if word.lower().startswith("dr"):
+                    doctor_name = last_user_msg.strip()
+                    break
+
+            if doctor_name:
+                st.session_state.booking = {
+                    "active": True,
+                    "step": "name",
+                    "data": {
+                        "doctor": doctor_name
+                    }
+                }
+
+                answer = f"Booking appointment with {doctor_name}. What is your name?"
+                
+                docs = []
 
 
         # Doctor booking flow

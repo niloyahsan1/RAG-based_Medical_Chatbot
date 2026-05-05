@@ -4,7 +4,7 @@ DB_NAME = "appointments.db"
 
 
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=10)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -22,7 +22,7 @@ def init_db():
 
 
 def add_appointment(name, doctor, date, reason):
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=10)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -35,7 +35,7 @@ def add_appointment(name, doctor, date, reason):
 
 
 def get_appointments():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=10)
     cursor = conn.cursor()
 
     cursor.execute("SELECT id, name, doctor, date, reason FROM appointments")
@@ -46,7 +46,7 @@ def get_appointments():
 
 
 def delete_appointment(appt_id):
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=10)
     cursor = conn.cursor()
 
     cursor.execute("DELETE FROM appointments WHERE id = ?", (appt_id,))
@@ -56,7 +56,7 @@ def delete_appointment(appt_id):
 
 
 def is_doctor_available(doctor, date):
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=10)
     cursor = conn.cursor()
 
     cursor.execute("""
