@@ -23,7 +23,7 @@ def load_docs():
 
 # Chunk documents into smaller pieces for embedding
 def chunk_docs(docs):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
     return splitter.split_documents(docs)
 

@@ -11,6 +11,32 @@ load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
+def is_valid_reason(text):
+    prompt = f"""
+    Determine if the following input is a valid medical reason for visiting a hospital.
+
+    Input: "{text}"
+
+    Rules:
+    - Must describe a symptom, illness, or health concern
+    - Reject random text, gibberish, or meaningless sentences
+    - Reject unrelated sentences
+
+    Answer ONLY:
+    YES or NO
+    """
+
+    # Generate response from LLM
+    response = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0
+    )
+
+    result = response.choices[0].message.content.strip().upper()
+    return result == "YES"
+
+
 def fallback_response():
     return """
     I am sorry, I couldn't find that information in the hospital guidelines.
@@ -99,8 +125,18 @@ def ask(query, history, appointments):
 
 
     # Retrieve docs relevant to the query (RAG part)
-    retriever = get_retriever(k=3)
-    docs = retriever.invoke(query)
+    retriever = get_retriever(k=8)
+    enhanced_query = f"""
+    User symptoms or request: {query}
+
+    Find:
+    - relevant medical department
+    - doctors who treat this condition
+    - availability if mentioned
+    
+    """
+
+    docs = retriever.invoke(enhanced_query.lower())
 
 
     # Fallback response if no relevant docs found
@@ -149,7 +185,6 @@ def ask(query, history, appointments):
     User Question:
     {query}
     """
-
 
     # Generate response from LLM
     response = client.chat.completions.create(
