@@ -8,28 +8,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def get_groq_client():
-    api_key = os.getenv("GROQ_API_KEY")
-
-    if not api_key:
-        try:
-            import streamlit as st
-            api_key = st.secrets.get("GROQ_API_KEY")
-        except Exception:
-            api_key = None
-
-    if not api_key:
-        return None
-
-    return Groq(api_key=api_key)
-
-
-client = get_groq_client()
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
 def is_valid_reason(text):
-    if client is None:
-        return False
     prompt = f"""
     Determine if the following input is a valid medical reason for visiting a hospital.
 
@@ -46,7 +28,7 @@ def is_valid_reason(text):
 
     # Generate response from LLM
     response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="openai/gpt-oss-120b",
         messages=[{"role": "user", "content": prompt}],
         temperature=0
     )
@@ -136,9 +118,6 @@ def ask(query, history, appointments):
         if key in query_lower:
             return non_medical[key], []
 
-
-    if client is None:
-        return "The app is missing a Groq API key. Please add GROQ_API_KEY to your environment or Streamlit secrets.", []
 
     # Safety check for medical advice
     if is_medical_advice(query):
