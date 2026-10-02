@@ -1,0 +1,135 @@
+[data-testid="stSidebar"] {
+    width: 350px !important;
+    min-width: 350px !important;
+    max-width: 350px !important;
+}
+
+[data-testid="stSidebar"]>div {
+    padding: 1.5rem 1.2rem 1rem 1.2rem;
+}
+
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    gap: 10px !important;
+}
+
+[data-testid="stSidebar"] hr {
+    margin: 20px 0 !important;
+}
+
+h1 {
+    font-size: 32px !important;
+    font-weight: bold !important;
+}
+
+h2 {
+    font-size: 36px !important;
+}
+
+h3 {
+    font-size: 24px !important;
+}
+
+h4 {
+    font-size: 24px !important;
+}
+
+h5 {
+    font-size: 20px !important;
+}
+
+h6 {
+    font-size: 18px !important;
+}
+
+.st-key-clear_conversation [data-testid="stButton"] {
+    display: flex;
+    justify-content: center;
+}
+
+.st-key-clear_conversation button {
+    background-color: #b84a4a !important;
+    border-color: #b84a4a !important;
+    color: white !important;
+    width: 60% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.st-key-clear_conversation button:hover {
+    background-color: #963838 !important;
+    border-color: #963838 !important;
+    color: white !important;
+}
+
+.chat-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.chat-user {
+    justify-content: flex-end;
+}
+
+.chat-bot {
+    justify-content: flex-start;
+}
+
+.chat-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 18px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-row:hover .chat-avatar {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-user {
+    background: #dce8f2;
+}
+
+.avatar-bot {
+    background: #dcefe7;
+}
+
+.bubble-user {
+    background-color: #2f2f2f;
+    color: white;
+    padding: 10px;
+    border-radius: 12px;
+    max-width: min(78%, 760px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bubble-user:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.bubble-bot {
+    background-color: #e8e8e8;
+    color: black;
+    padding: 10px;
+    border-radius: 12px;
+    max-width: min(78%, 760px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bubble-bot:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.timestamp {
+    font-size: 12px;
+    opacity: 0.6;
+}
