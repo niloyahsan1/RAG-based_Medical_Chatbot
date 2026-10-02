@@ -1,6 +1,9 @@
 import streamlit as st
 from datetime import datetime
 from collections import defaultdict
+from html import escape
+from pathlib import Path
+from string import Template
 
 from app.rag_engine import ask, is_valid_reason
 from app.retriever import get_retriever, ensure_vector_db_exists
@@ -12,6 +15,22 @@ from app.database import (
     is_doctor_available,
 )
 
+st.set_page_config(
+    page_title="FH Assistant",
+    page_icon="🏥",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+APP_DIR = Path(__file__).resolve().parent
+CHAT_MESSAGE_TEMPLATE = Template(
+    (APP_DIR / "app" / "templates" / "chat_message.html").read_text(encoding="utf-8")
+)
+
+st.markdown(
+    f"<style>{(APP_DIR / 'app' / 'static' / 'styles.css').read_text(encoding='utf-8')}</style>",
+    unsafe_allow_html=True,
+)
 
 # Initialize database
 ensure_db_exists()
@@ -21,11 +40,6 @@ try:
 except FileNotFoundError as exc:
     st.warning(str(exc))
     st.stop()
-
-
-# Page config
-st.set_page_config(page_title="FH Assistant", layout="wide")
-
 
 def is_booking_request(text):
     query = (text or "").lower().strip()
@@ -85,30 +99,6 @@ if "doctor_options" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-
-# Header
-col1, col2 = st.columns([8, 2])
-
-# Title
-with col1:
-    st.title("🤖 Fictional Hospital Assistant")
-
-# Reset button
-with col2:
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("Reset Chat"):
-        st.session_state.messages = [
-            {
-                "role": "assistant",
-                "content": "Hello! I am your hospital assistant. How can I help you today?",
-                "time": datetime.now().strftime("%I:%M %p")
-            }
-        ]
-
-        st.rerun()
-
-
-# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
@@ -117,6 +107,58 @@ if "messages" not in st.session_state:
             "time": datetime.now().strftime("%I:%M %p")
         }
     ]
+
+
+# Sidebar info panel
+with st.sidebar:
+    st.title("RAG-Based Chatbot")
+    if st.button("Clear conversation", use_container_width=True, key="clear_conversation"):
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": "Hello! I am your hospital assistant. How can I help you today?",
+                "time": datetime.now().strftime("%I:%M %p")
+            }
+        ]
+        st.session_state.chat_history = []
+        st.session_state.booking = {"active": False, "step": None, "data": {}}
+        st.session_state.delete_mode = False
+        st.session_state.doctor_select_mode = False
+        st.session_state.doctor_options = []
+        st.session_state.selected_doctor = None
+        st.rerun()
+
+    st.divider()
+    st.subheader("About")
+    st.write("A hospital-focused assistant for finding information and managing appointment requests.")
+
+    st.divider()
+    st.subheader("Try asking")
+    st.markdown("""
+    - Which hospital is this?
+    - What are the visiting hours?
+    - Which doctors are available?
+    - How do I book an appointment?
+    - Show my appointments.
+    """)
+
+    st.divider()
+    st.subheader("Getting started")
+    st.markdown("""
+    1. Ask about hospital services or policies.
+    2. Ask about doctors or departments.
+    3. Request an appointment, or ask to view or cancel one.
+    """)
+
+    st.divider()
+    st.subheader("How it works")
+    st.write("Your question is matched with information in the hospital documents. The assistant uses relevant material to prepare a response.")
+
+    st.divider()
+    st.caption("Important note: This assistant provides fictional hospital information only, not medical advice. For emergencies, contact local emergency services.")
+
+# Header
+st.title("Fictional Hospital Assistant")
 
 
 # Handle typing states
@@ -554,77 +596,30 @@ if query:
     st.rerun()
 
 
-# Custom CSS for chat bubbles
-st.markdown("""
-            <style>
-            .chat-row { display: flex; margin: 10px 0; }
-            .chat-user { justify-content: flex-end; }
-            .chat-bot { justify-content: flex-start; }
-
-            .bubble-user {
-                background-color: #2F2F2F;
-                color: white;
-                padding: 10px;
-                border-radius: 12px;
-                max-width: 70%;
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
-            }
-
-            .bubble-user:hover {
-                transform: scale(1.02);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            }
-
-            .bubble-bot {
-                background-color: #E8E8E8;
-                color: black;
-                padding: 10px;
-                border-radius: 12px;
-                max-width: 70%;
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
-            }
-
-            .bubble-bot:hover {
-                transform: scale(1.02);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            }
-
-            .timestamp {
-                font-size: 0.75em;
-                opacity: 0.6;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-
-
 # Display chat messages
 for msg in st.session_state.messages:
+    is_user = msg["role"] == "user"
+    avatar_before = (
+        '<span class="chat-avatar avatar-bot" aria-label="Hospital assistant">🏥</span>'
+        if not is_user
+        else ""
+    )
+    avatar_after = (
+        '<span class="chat-avatar avatar-user" aria-label="You">👤</span>'
+        if is_user
+        else ""
+    )
+    message_html = CHAT_MESSAGE_TEMPLATE.substitute(
+        row_class="chat-user" if is_user else "chat-bot",
+        avatar_before=avatar_before,
+        bubble_class="bubble-user" if is_user else "bubble-bot",
+        content_html="<br>".join(escape(line) for line in str(msg["content"]).splitlines()),
+        timestamp=escape(str(msg.get("time", ""))),
+        avatar_after=avatar_after,
+    )
+    st.markdown(message_html, unsafe_allow_html=True)
 
-    # Replace newlines with <br> for HTML display
-    content_html = msg['content'].replace("\n", "<br>")
-
-    # Render user and bot messages differently
-    if msg["role"] == "user":
-        st.markdown(f"""
-        <div class="chat-row chat-user">
-            <div class="bubble-user">
-                {content_html}<br>
-                <span class="timestamp">{msg.get('time','')}</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    else:
-        st.markdown(f"""
-        <div class="chat-row chat-bot">
-            <div class="bubble-bot">
-                {content_html}<br>
-                <span class="timestamp">{msg.get('time','')}</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-
+    if not is_user:
         # sources
         docs = msg.get("docs", [])
 
@@ -641,10 +636,3 @@ for msg in st.session_state.messages:
                     pages = sorted(set(pages))
                     st.write(f"{src}")
                     st.write(f"Pages: {pages}")
-
-
-        # # confidence score
-        # if docs:
-        #     unique_docs = len(set([d.page_content for d in docs]))
-        #     confidence = round(min(unique_docs / 2, 1.0), 2)
-        #     st.write(f"Confidence: {confidence}")
