@@ -1,67 +1,66 @@
 # RAG-based Medical Chatbot
 
-A lightweight medical information assistant built with Python, Streamlit, LangChain, and FAISS. The app retrieves relevant hospital knowledge from PDFs and answers user questions using a retrieval-augmented generation (RAG) workflow.
+A Streamlit-based hospital assistant that answers medical and hospital-related questions using a retrieval-augmented generation (RAG) system. The application reads hospital knowledge from PDF documents, converts them into embeddings, stores them in a FAISS vector database, retrieves the most relevant chunks for a query, and then generates a response using Groq LLMs. It also includes a basic appointment booking flow for patients.
 
-This project is designed to help patients and visitors get hospital-related information quickly, while also supporting a basic appointment booking flow.
+## How it works
 
-## Features
-
-- Streamlit-based web interface
-- RAG pipeline for retrieving hospital information from PDF documents
-- Document chunking and embedding with LangChain + Hugging Face embeddings
-- FAISS vector search for relevant context retrieval
-- Groq-powered response generation
-- SQLite appointment booking and availability checks
-- Safety checks to avoid unsafe or unsupported medical advice
+1. PDF documents are loaded from the `documents/` folder.
+2. The documents are split into smaller chunks.
+3. Each chunk is converted into embeddings using Hugging Face sentence-transformers.
+4. The embeddings are stored in a FAISS vector database under `vectordb/`.
+5. When a user asks a question, the app retrieves the most relevant chunks from the database.
+6. The retrieved context is combined with the user query and passed to the Groq-powered LLM.
+7. The model generates a response based on the hospital information in the retrieved context.
+8. The app also validates the query for safety and supports appointment booking through SQLite.
 
 ## Project Structure
+```text
+RAG-based_Medical_Chatbot/
+├── app/
+│   ├── database.py
+│   ├── ingest.py
+│   ├── rag_engine.py
+│   ├── retriever.py
+│   └── safety.py
+├── documents/
+├── vectordb/
+├── .env
+├── .gitignore
+├── appointments.db
+├── main.py
+├── README.md
+├── requirements.txt
+└── template.sh
+```
 
-- `main.py` - Streamlit app entry point
-- `app/` - application logic
-  - `database.py` - appointment database operations
-  - `ingest.py` - PDF ingestion and FAISS indexing
-  - `rag_engine.py` - answer generation and safety checks
-  - `retriever.py` - retrieval logic
-  - `safety.py` - medical safety validation
-- `documents/` - source PDF knowledge files
-- `vectordb/` - FAISS vector database
-- `requirements.txt` - Python dependencies
+## Features
+- Streamlit interface for user interaction
+- PDF-based knowledge retrieval using RAG
+- Semantic search with FAISS
+- LLM-based response generation with Groq
+- Appointment booking and doctor availability checks
+- Safety checks for medical queries
 
 ## Setup
+```bash
+pip install -r requirements.txt
+```
 
-1. Create and activate a virtual environment if needed.
-2. Install dependencies:
+Create a `.env` file and add:
+```env
+GROQ_API_KEY=your_api_key_here
+```
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+Build the vector database:
+```bash
+python app/ingest.py
+```
 
-3. Add your environment variables in a `.env` file:
-
-   ```env
-   GROQ_API_KEY=your_api_key_here
-   ```
-
-4. Build the vector database from the PDF files:
-
-   ```bash
-   python app/ingest.py
-   ```
-
-5. Run the app:
-
-   ```bash
-   streamlit run main.py
-   ```
-
-## Notes
-
-- The app expects PDF documents in the `documents/` folder.
-- The vector index is stored in `vectordb/`.
-- Appointment data is stored in `appointments.db`.
-- This project is still under active development and is intended as a functional prototype.
+Run the app:
+```bash
+streamlit run main.py
+```
 
 ## Collaborators
-
 - [**Niloy Ahsan**](https://github.com/niloyahsan1)
 - [**Tanay Paul**](https://github.com/tanay-official)
