@@ -1,11 +1,25 @@
-[data-testid="stSidebar"] {
+section[data-testid="stSidebar"][aria-expanded="true"] {
     width: 350px !important;
     min-width: 350px !important;
     max-width: 350px !important;
 }
 
+section[data-testid="stSidebar"][aria-expanded="false"] {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+}
+
 [data-testid="stSidebar"]>div {
     padding: 1.5rem 1.2rem 1rem 1.2rem;
+}
+
+@media (max-width: 640px) {
+    section[data-testid="stSidebar"][aria-expanded="true"] {
+        width: min(85vw, 350px) !important;
+        min-width: min(85vw, 350px) !important;
+        max-width: min(85vw, 350px) !important;
+    }
 }
 
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
