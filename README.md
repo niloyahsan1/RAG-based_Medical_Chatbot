@@ -1,7 +1,5 @@
 # Fictional Hospital Assistant
-A hospital-focused chatbot built with Streamlit, FAISS, and a retrieval-augmented generation pipeline. The app is designed to answer hospital-related questions, explain services and policies, suggest relevant doctors, and help users with appointment booking in a fictional healthcare setting.
-
-This project is intentionally scoped to hospital information rather than general-purpose medical advice. It is meant to support patient and visitor queries in a controlled environment.
+A hospital-focused chatbot built with Streamlit, FAISS, and a retrieval-augmented generation pipeline. The app is designed to answer hospital-related questions, explain services and policies, suggest relevant doctors, and help users with appointment booking in a fictional healthcare setting. This project is intentionally scoped to hospital information rather than general-purpose medical advice. It is meant to support patient and visitor queries in a controlled environment.
 
 ## What this project does
 - Answers hospital-related questions using retrieved knowledge from local documents
