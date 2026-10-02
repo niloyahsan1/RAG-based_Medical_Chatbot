@@ -1,4 +1,6 @@
 import os
+import re
+
 from groq import Groq
 from .retriever import get_retriever
 from .safety import is_medical_advice, safe_response
@@ -6,6 +8,21 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
+
+
+HOSPITAL_PROFILE = {
+    "name": "Fictional Hospital",
+}
+
+
+HOSPITAL_KEYWORDS = [
+    "hospital", "doctor", "doctors", "patient", "patients", "appointment",
+    "book", "booking", "schedule", "department", "clinic", "nurse",
+    "ward", "room", "visiting", "visit", "hours", "admission", "discharge",
+    "surgery", "policy", "rights", "symptom", "symptoms", "condition",
+    "consultation", "medication", "treatment", "illness", "disease",
+    "infection", "fever", "pain", "health", "medical"
+]
 
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -51,9 +68,47 @@ def fallback_response():
     """
 
 
+def get_fixed_hospital_fact(query):
+    text = query.lower().strip()
+
+    if any(item in text for item in [
+        "which hospital",
+        "what hospital",
+        "hospital name",
+        "what is the hospital name",
+        "what is this hospital",
+        "what hospital is this",
+        "what is the name of the hospital"
+    ]):
+        return f"{HOSPITAL_PROFILE['name']}."
+
+    return None
+
+
+def is_hospital_related(query):
+    cleaned = re.sub(r"[^a-z0-9\s]", " ", query.lower())
+    words = set(cleaned.split())
+
+    if not words:
+        return False
+
+    for keyword in HOSPITAL_KEYWORDS:
+        if keyword in words:
+            return True
+
+    return False
+
+
 # Main function to handle user queries
 def ask(query, history, appointments):
     query_lower = query.lower()
+
+    fixed_fact = get_fixed_hospital_fact(query_lower)
+    if fixed_fact is not None:
+        return fixed_fact, []
+
+    if not is_hospital_related(query):
+        return "Please ask only about the hospital.", []
 
     # Simple greeting check
     greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
@@ -118,6 +173,8 @@ def ask(query, history, appointments):
         if key in query_lower:
             return non_medical[key], []
 
+    if not is_hospital_related(query):
+        return "Please ask only about the hospital.", []
 
     # Safety check for medical advice
     if is_medical_advice(query):
