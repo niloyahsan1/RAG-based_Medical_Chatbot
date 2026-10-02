@@ -1,24 +1,69 @@
 import streamlit as st
-from app.rag_engine import ask
 from datetime import datetime
 from collections import defaultdict
-from app.retriever import get_retriever
-from datetime import datetime
-from app.rag_engine import is_valid_reason
-from app.database import ensure_db_exists
-from app.database import add_appointment
-from app.database import get_appointments
-from app.database import delete_appointment
-from app.database import is_doctor_available
 
+from app.rag_engine import ask, is_valid_reason
+from app.retriever import get_retriever, ensure_vector_db_exists
+from app.database import (
+    ensure_db_exists,
+    add_appointment,
+    get_appointments,
+    delete_appointment,
+    is_doctor_available,
+)
 
 
 # Initialize database
 ensure_db_exists()
 
+try:
+    ensure_vector_db_exists()
+except FileNotFoundError as exc:
+    st.warning(str(exc))
+    st.stop()
+
 
 # Page config
 st.set_page_config(page_title="FH Assistant", layout="wide")
+
+
+def is_booking_request(text):
+    query = (text or "").lower().strip()
+
+    if not query:
+        return False
+
+    blocked = [
+        "cancel appointment",
+        "delete appointment",
+        "remove appointment",
+        "show appointment",
+        "how does appointment",
+        "what is appointment",
+        "appointment policy",
+        "appointment process",
+    ]
+
+    if any(item in query for item in blocked):
+        return False
+
+    explicit_patterns = [
+        "book an appointment",
+        "book appointment",
+        "schedule an appointment",
+        "schedule appointment",
+        "book a doctor",
+        "book doctor",
+        "appointment with doctor",
+        "appointment with dr",
+        "book with doctor",
+        "book with dr",
+    ]
+
+    if any(pattern in query for pattern in explicit_patterns):
+        return True
+
+    return ("book" in query or "schedule" in query) and ("appointment" in query or "doctor" in query or "consultation" in query)
 
 
 # Session states
@@ -449,7 +494,7 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
 
 
         # Start booking flow
-        elif any(word in query for word in ["book", "appointment", "appoint", "schedule"]):
+        elif is_booking_request(query):
 
             st.session_state.booking = {
                 "active": True,
