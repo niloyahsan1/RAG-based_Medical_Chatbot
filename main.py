@@ -172,7 +172,7 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
             break
 
     if last_user_msg:
-        query = last_user_msg.lower()
+        query = last_user_msg.lower().strip().replace("appoinment", "appointment")
 
         if "cancel" in query:
             st.session_state.booking = {"active": False, "step": None, "data": {}}
@@ -327,6 +327,7 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
 
             if not appointments:
                 answer = "You have no appointments to delete."
+                st.session_state.delete_mode = False
 
             elif query.isdigit():
                 index = int(query) - 1
@@ -335,14 +336,16 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
                     appt_id = appointments[index][0]
                     delete_appointment(appt_id)
                     answer = "Appointment deleted successfully."
+                    st.session_state.delete_mode = False
 
                 else:
                     answer = "Invalid appointment number."
+                    st.session_state.delete_mode = True
 
             else:
                 answer = "Please enter a valid number."
+                st.session_state.delete_mode = True
 
-            st.session_state.delete_mode = False
             docs = []
 
 
@@ -381,7 +384,9 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
 
 
         # Show appointments
-        elif "show" in query and "appointment" in query:
+        elif "appointment" in query and any(
+            action in query.split() for action in ["show", "view", "list", "display"]
+        ):
 
             appointments = get_appointments()
 
@@ -391,8 +396,8 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
             else:
                 answer = "Your Appointments are below:\n\n"
 
-                for a in appointments:
-                    answer += f"""{a[0]}.
+                for number, a in enumerate(appointments, start=1):
+                    answer += f"""{number}.
                     - Name: {a[1]}
                     - Doctor: {a[2]}
                     - Date: {a[3]}
@@ -405,8 +410,13 @@ if st.session_state.messages and st.session_state.messages[-1].get("typing"):
 
         # Delete appointments
         elif any(w in query for w in ["delete", "cancel", "remove"]):
-            st.session_state.delete_mode = True
-            answer = "Which appointment number do you want to delete?"
+            appointments = get_appointments()
+            if appointments:
+                st.session_state.delete_mode = True
+                answer = "Which appointment number do you want to delete?"
+            else:
+                st.session_state.delete_mode = False
+                answer = "You have no appointments to delete."
 
             docs = []
 
@@ -617,7 +627,7 @@ for msg in st.session_state.messages:
         timestamp=escape(str(msg.get("time", ""))),
         avatar_after=avatar_after,
     )
-    st.markdown(message_html, unsafe_allow_html=True)
+    st.html(message_html)
 
     if not is_user:
         # sources

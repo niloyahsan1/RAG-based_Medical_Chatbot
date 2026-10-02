@@ -107,14 +107,12 @@ def ask(query, history, appointments):
     if fixed_fact is not None:
         return fixed_fact, []
 
+    greetings = {"hi", "hello", "hey", "good morning", "good afternoon", "good evening"}
+    if query_lower.strip() in greetings:
+        return "Hello! I can help with hospital guidelines, visiting hours, doctors, and appointments.", []
+
     if not is_hospital_related(query):
         return "Please ask only about the hospital.", []
-
-    # Simple greeting check
-    greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"]
-    for greet in greetings:
-        if greet in query_lower:
-            return "Hello! How can I assist you today?", []
 
 
     # Check for non-medical queries
@@ -181,19 +179,9 @@ def ask(query, history, appointments):
         return safe_response(), []
 
 
-    # Retrieve docs relevant to the query (RAG part)
+    # Search with the user's wording so policy queries are not biased toward doctors.
     retriever = get_retriever(k=8)
-    enhanced_query = f"""
-    User symptoms or request: {query}
-
-    Find:
-    - relevant medical department
-    - doctors who treat this condition
-    - availability if mentioned
-    
-    """
-
-    docs = retriever.invoke(enhanced_query.lower())
+    docs = retriever.invoke(query_lower)
 
 
     # Fallback response if no relevant docs found
@@ -214,7 +202,7 @@ def ask(query, history, appointments):
 
     # Prompt
     prompt = f"""
-    You are a medical assistant for a hospital.
+    You are an information assistant for a hospital.
 
     Use the conversation history if relevant.
     If the question refers to previous messages, use that context.

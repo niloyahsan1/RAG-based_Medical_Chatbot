@@ -44,7 +44,7 @@ def get_appointments():
     conn = sqlite3.connect(DB_NAME, timeout=10)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, name, doctor, date, reason FROM appointments")
+    cursor.execute("SELECT id, name, doctor, date, reason FROM appointments ORDER BY id ASC")
     rows = cursor.fetchall()
 
     conn.close()
