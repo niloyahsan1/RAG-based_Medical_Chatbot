@@ -5,7 +5,7 @@ from collections import defaultdict
 from app.retriever import get_retriever
 from datetime import datetime
 from app.rag_engine import is_valid_reason
-from app.database import init_db
+from app.database import ensure_db_exists
 from app.database import add_appointment
 from app.database import get_appointments
 from app.database import delete_appointment
@@ -14,7 +14,7 @@ from app.database import is_doctor_available
 
 
 # Initialize database
-init_db()
+ensure_db_exists()
 
 
 # Page config

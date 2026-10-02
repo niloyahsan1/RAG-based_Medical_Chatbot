@@ -1,6 +1,12 @@
+import os
 import sqlite3
 
 DB_NAME = "appointments.db"
+
+
+def ensure_db_exists():
+    if not os.path.exists(DB_NAME):
+        init_db()
 
 
 def init_db():
